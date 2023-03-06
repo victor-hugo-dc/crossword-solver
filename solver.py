@@ -1,6 +1,6 @@
 import openai
-import re
 from config import key
+from parse import *
 
 openai.api_key = key
 
@@ -17,17 +17,7 @@ def chat(message: str) -> str:
     messages.append({"role": "assistant", "content": reply})
     return reply
 
-
-length = input("How many letters? ")
-message = input("Clue: ")
-message = f"{length}-letter word for the crossword clue: {message}"
-
-reply = chat(message)
+url = input("Please paste the URL of the crossword: ")
+clue = input("Which clue would you like to solve? ")
+reply = chat(get_example(url)[clue])
 print(reply)
-
-try:
-    word = re.findall(r'"([^"]*)"', reply)[0]
-    # here get rid of all the periods and spaces
-    print(word)
-except:
-    print(" ")

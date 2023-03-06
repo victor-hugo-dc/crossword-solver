@@ -9,6 +9,7 @@ def scrape_page(url: str) -> BeautifulSoup:
     options = Options()
     options.add_argument('--headless')
     options.add_argument('--disable-gpu')
+    options.add_argument("--log-level=3")
     driver = webdriver.Chrome(chrome_options=options)
     driver.get(url)
     time.sleep(3)
@@ -69,12 +70,17 @@ def extract_across_hints(soup: BeautifulSoup) -> dict:
     
     return across_clues
 
-
 # Driver code
-soup = scrape_page("https://www.downforacross.com/beta/game/2965282-thrun")
-across = extract_across(soup)
-across_hints = extract_across_hints(soup)
+def get_example(url):
+    result = {}
+    soup = scrape_page(url)
+    across = extract_across(soup)
+    across_hints = extract_across_hints(soup)
 
-for k, v in across.items():
-    if k in across_hints:
-        print(f"{k}: {v}-letter word for the clue: {across_hints[k]}")
+    for k, v in across.items():
+        if k in across_hints:
+            # print(f"{k}: {v}-letter word for the clue: {across_hints[k]}")
+            result[k] = f"What is a {v}-letter word for the clue: {across_hints[k]}"
+    return result
+
+# get_example()
