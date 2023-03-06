@@ -3,7 +3,7 @@
 Simple crossword puzzle solver that utilizes ChatGPT to solve given clues. At the moment, the program connects to a crossword puzzle from the website [downforacross](https://www.downforacross.com/) and extracts all of the clues in the across direction, then it asks User which clue they would like to have solved.
 
 ## Usage
-To run this project,
+To run this project, 
 1. Install Python 3.8 or above from [here](https://www.python.org/download/releases/)
 2. Clone the repository:
     ```
@@ -14,7 +14,7 @@ To run this project,
     ```
     pip install -r requirements.txt
     ```
-4. In the root directory, run:
+4. Put your OpenAI key in the a config.py file in the root directory, then run:
     ```
     python3 solver.py
     ```
