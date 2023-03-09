@@ -18,6 +18,14 @@ def chat(message: str) -> str:
     return reply
 
 url = input("Please paste the URL of the crossword: ")
-clue = input("Which clue would you like to solve? ")
-reply = chat(get_example(url)[clue])
-print(reply)
+try:
+    soup = scrape_page(url)
+    across = extract_across(soup)
+    across_hints = extract_across_hints(soup)
+
+    for k, v in across.items():
+        reply = chat(f"What is a {v}-letter word for the clue: {across_hints[k]}")
+        print(f"{k}a: {reply}")
+
+except:
+    print("Please provide a valid downforacross url.")

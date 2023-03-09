@@ -2,7 +2,6 @@ import time
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-import os
 import math
 
 def scrape_page(url: str) -> BeautifulSoup:
@@ -15,7 +14,6 @@ def scrape_page(url: str) -> BeautifulSoup:
     time.sleep(3)
     page = driver.page_source
     driver.quit()
-    os.system("cls")
 
     return BeautifulSoup(page, 'html.parser')
 
@@ -69,18 +67,3 @@ def extract_across_hints(soup: BeautifulSoup) -> dict:
         across_clues[number] = hint
     
     return across_clues
-
-# Driver code
-def get_example(url):
-    result = {}
-    soup = scrape_page(url)
-    across = extract_across(soup)
-    across_hints = extract_across_hints(soup)
-
-    for k, v in across.items():
-        if k in across_hints:
-            # print(f"{k}: {v}-letter word for the clue: {across_hints[k]}")
-            result[k] = f"What is a {v}-letter word for the clue: {across_hints[k]}"
-    return result
-
-# get_example()
