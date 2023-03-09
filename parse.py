@@ -4,12 +4,15 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 import math
 
+ACROSS = 0
+DOWN = 1
+
 def scrape_page(url: str) -> BeautifulSoup:
     options = Options()
     options.add_argument('--headless')
     options.add_argument('--disable-gpu')
     options.add_argument("--log-level=3")
-    driver = webdriver.Chrome(chrome_options=options)
+    driver = webdriver.Chrome(options=options)
     driver.get(url)
     time.sleep(3)
     page = driver.page_source
@@ -17,112 +20,70 @@ def scrape_page(url: str) -> BeautifulSoup:
 
     return BeautifulSoup(page, 'html.parser')
 
-def extract_down(soup: BeautifulSoup) -> dict:
-    tags = soup.findAll("td", class_="grid--cell")
-    dimensions: int = int(math.sqrt(len(tags)))
-    down: dict = {}
+def extract(soup: BeautifulSoup, index_fn) -> dict:
+    td_tags: BeautifulSoup.ResultSet = soup.findAll("td", class_="grid--cell")
+    dimensions: int = int(math.sqrt(len(td_tags)))
+    lengths: dict = {}
 
     for i in range(dimensions):
-        current_down = None
-        length_down = 0
+
+        current = None
+        length: int = 0
 
         for j in range(dimensions):
-            index: int = (dimensions * j) + i
-            content:str = str(tags[index].contents[0])
-            tag = BeautifulSoup(content, 'html.parser')
+            index: int = index_fn(i, j, dimensions)
+
+            tag_content = td_tags[index].contents[0]
+            tag: BeautifulSoup = BeautifulSoup(str(tag_content), 'html.parser')
             divs = tag.find_all('div')
 
             if len(divs) == 2:
-                down[current_down] = length_down
-                current_down = None
-                length_down = 0
-            
+                lengths[current] = length
+                current = None
+                length = 0
+
             else:
                 number: list = divs[2].contents
                 if len(number) != 0:
-                    if current_down is None:
-                        current_down = number[0]
+                    if current is None:
+                        current = number[0]
                 
-                length_down += 1
+                length += 1
         
-        if current_down != None:
-            down[current_down] = length_down
+        if current != None:
+            lengths[current] = length
     
-    return {k: v for k, v in down.items() if k is not None}
+    return {k: v for k, v in lengths.items() if k is not None}
 
 
-def extract_across(soup: BeautifulSoup) -> dict:
-    tags = soup.findAll("td", class_="grid--cell")
-    dimensions: int = int(math.sqrt(len(tags)))
-    across: dict = {}
+def extract_clues(soup: BeautifulSoup, direction: int) -> dict:
+    clues_list: BeautifulSoup.ResultSet = soup.findAll("div", class_="clues--list")
+    clues_soup: BeautifulSoup = BeautifulSoup(str(clues_list[direction]), 'html.parser')
+    clues_text = clues_soup.findAll("div", class_="clues--list--scroll--clue")
 
-    for k in range(dimensions):
-        current_across = None
-        length_across = 0
+    clues: dict = {}
 
-        for i in range(dimensions):
-            index: int = (dimensions * k) + i
-            content: str = str(tags[index].contents[0])
-            tag = BeautifulSoup(content, 'html.parser')
-            divs = tag.find_all('div')
-
-            # Reset when we encounter a black square
-            if len(divs) == 2:
-                across[current_across] = length_across
-
-                current_across = None
-                length_across = 0
-            
-            else:
-                number: list = divs[2].contents
-                if len(number) != 0:
-                    if current_across is None:
-                        current_across = number[0]
-                
-                length_across += 1
-
-        if current_across != None:
-            across[current_across] = length_across
-
-    return {k: v for k, v in across.items() if k is not None} # Filter for None values
-
-def extract_across_hints(soup: BeautifulSoup) -> dict:
-    across_list = soup.findAll("div", class_="clues--list")
-    across_hints = BeautifulSoup(str(across_list[0]), 'html.parser')
-    clues = across_hints.findAll("div", class_="clues--list--scroll--clue")
-
-    across_clues = {}
-
-    for clue in clues:
-        clue_ = BeautifulSoup(str(clue), 'html.parser')
-        divs = clue_.find_all('div')
-        number = divs[1].text
-        hint = divs[2].text
-        across_clues[number] = hint
+    for clue in clues_text:
+        clue = BeautifulSoup(str(clue), 'html.parser')
+        info = clue.find_all('div')
+        clues[info[1].text] = info[2].text
     
-    return across_clues
-
-def extract_down_hints(soup: BeautifulSoup) -> dict:
-    down_list = soup.findAll("div", class_="clues--list")
-    down_hints = BeautifulSoup(str(down_list[1]), 'html.parser')
-    clues = down_hints.findAll("div", class_="clues--list--scroll--clue")
-
-    down_clues = {}
-
-    for clue in clues:
-        clue_ = BeautifulSoup(str(clue), 'html.parser')
-        divs = clue_.find_all('div')
-        number = divs[1].text
-        hint = divs[2].text
-        down_clues[number] = hint
-    
-    return down_clues
+    return clues
 
 
 soup = scrape_page("https://www.downforacross.com/beta/game/2978701-dimp")
-down = extract_down(soup)
-down_hints = extract_down_hints(soup)
 
-for k, v in down.items():
-    print(f"{k}: {v}")
-    print(f"What is a {v}-letter word for the clue: {down_hints[k]}")
+down = lambda i, j, dimensions: (dimensions * j) + i
+across = lambda i, j, dimensions: (dimensions * i) + j
+
+dlengths = extract(soup, down)
+alengths = extract(soup, across)
+
+dclues = extract_clues(soup, DOWN)
+aclues = extract_clues(soup, ACROSS)
+
+for k, v in dlengths.items():
+    print(f"DOWN: {v}-letter word for the clue - {dclues[k]}")
+
+for k, v in alengths.items():
+    print(f"ACROSS: {v}-letter word for the clue - {aclues[k]}")
