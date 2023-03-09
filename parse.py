@@ -17,6 +17,40 @@ def scrape_page(url: str) -> BeautifulSoup:
 
     return BeautifulSoup(page, 'html.parser')
 
+def extract_down(soup: BeautifulSoup) -> dict:
+    tags = soup.findAll("td", class_="grid--cell")
+    dimensions: int = int(math.sqrt(len(tags)))
+    down: dict = {}
+
+    for i in range(dimensions):
+        current_down = None
+        length_down = 0
+
+        for j in range(dimensions):
+            index: int = (dimensions * j) + i
+            content:str = str(tags[index].contents[0])
+            tag = BeautifulSoup(content, 'html.parser')
+            divs = tag.find_all('div')
+
+            if len(divs) == 2:
+                down[current_down] = length_down
+                current_down = None
+                length_down = 0
+            
+            else:
+                number: list = divs[2].contents
+                if len(number) != 0:
+                    if current_down is None:
+                        current_down = number[0]
+                
+                length_down += 1
+        
+        if current_down != None:
+            down[current_down] = length_down
+    
+    return {k: v for k, v in down.items() if k is not None}
+
+
 def extract_across(soup: BeautifulSoup) -> dict:
     tags = soup.findAll("td", class_="grid--cell")
     dimensions: int = int(math.sqrt(len(tags)))
@@ -67,3 +101,28 @@ def extract_across_hints(soup: BeautifulSoup) -> dict:
         across_clues[number] = hint
     
     return across_clues
+
+def extract_down_hints(soup: BeautifulSoup) -> dict:
+    down_list = soup.findAll("div", class_="clues--list")
+    down_hints = BeautifulSoup(str(down_list[1]), 'html.parser')
+    clues = down_hints.findAll("div", class_="clues--list--scroll--clue")
+
+    down_clues = {}
+
+    for clue in clues:
+        clue_ = BeautifulSoup(str(clue), 'html.parser')
+        divs = clue_.find_all('div')
+        number = divs[1].text
+        hint = divs[2].text
+        down_clues[number] = hint
+    
+    return down_clues
+
+
+soup = scrape_page("https://www.downforacross.com/beta/game/2978701-dimp")
+down = extract_down(soup)
+down_hints = extract_down_hints(soup)
+
+for k, v in down.items():
+    print(f"{k}: {v}")
+    print(f"What is a {v}-letter word for the clue: {down_hints[k]}")
