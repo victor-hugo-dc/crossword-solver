@@ -69,21 +69,3 @@ def extract_clues(soup: BeautifulSoup, direction: int) -> dict:
         clues[info[1].text] = info[2].text
     
     return clues
-
-
-soup = scrape_page("https://www.downforacross.com/beta/game/2978701-dimp")
-
-down = lambda i, j, dimensions: (dimensions * j) + i
-across = lambda i, j, dimensions: (dimensions * i) + j
-
-dlengths = extract(soup, down)
-alengths = extract(soup, across)
-
-dclues = extract_clues(soup, DOWN)
-aclues = extract_clues(soup, ACROSS)
-
-for k, v in dlengths.items():
-    print(f"DOWN: {v}-letter word for the clue - {dclues[k]}")
-
-for k, v in alengths.items():
-    print(f"ACROSS: {v}-letter word for the clue - {aclues[k]}")

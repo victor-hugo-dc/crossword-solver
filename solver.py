@@ -17,15 +17,27 @@ def chat(message: str) -> str:
     messages.append({"role": "assistant", "content": reply})
     return reply
 
-url = input("Please paste the URL of the crossword: ")
-try:
-    soup = scrape_page(url)
-    across = extract_across(soup)
-    across_hints = extract_across_hints(soup)
+if __name__ == '__main__':
+    url = input("Please paste the URL of the crossword: ")
+    try:
+        soup = scrape_page(url)
 
-    for k, v in across.items():
-        reply = chat(f"What is a {v}-letter word for the clue: {across_hints[k]}")
-        print(f"{k}a: {reply}")
+        down = lambda i, j, dimensions: (dimensions * j) + i
+        across = lambda i, j, dimensions: (dimensions * i) + j
 
-except:
-    print("Please provide a valid downforacross url.")
+        dlengths = extract(soup, down)
+        alengths = extract(soup, across)
+
+        dclues = extract_clues(soup, DOWN)
+        aclues = extract_clues(soup, ACROSS)
+
+        for k, v in dlengths.items():
+            reply = chat(f"What is a {v}-letter word for the clue: {dclues[k]}")
+            print(f"{k} DOWN: {reply}")
+        
+        for k, v in alengths.items():
+            reply = chat(f"What is a {v}-letter word for the clue: {aclues[k]}")
+            print(f"{k} ACROSS: {reply}")
+
+    except:
+        print("Please provide a valid downforacross url.")

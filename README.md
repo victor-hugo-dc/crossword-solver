@@ -1,6 +1,6 @@
 # Crossword Solver
 
-Simple crossword puzzle solver that utilizes ChatGPT to solve given clues. At the moment, the program connects to a crossword puzzle from the website [downforacross](https://www.downforacross.com/) and extracts all of the clues in the across direction, then it asks User which clue they would like to have solved.
+Simple crossword puzzle solver that utilizes ChatGPT to solve given clues. The program connects to a crossword puzzle from the website [downforacross](https://www.downforacross.com/) and extracts all of the clues and solves it using the ChatGPT API.
 
 ## Usage
 To run this project, 
@@ -14,12 +14,10 @@ To run this project,
     ```
     pip install -r requirements.txt
     ```
-4. Put your OpenAI key in the a config.py file in the root directory, then run:
+4. Put your OpenAI key in the a config.py file in the root directory.
+5. Get a valid [downforacross](https://www.downforacross.com/) link. 
+6.  Run
     ```
     python3 solver.py
     ```
-5. Follow the instructions printed by the program.
-
-## Future Improvements
-- [ ] Work on getting the down clues.
-- [ ] Edge casing for proper usage.
+    and provide the link as input when prompted
